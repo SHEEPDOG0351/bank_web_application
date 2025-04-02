@@ -58,5 +58,20 @@ def login():
 def accounts():
     return render_template('accounts.html')
 
-@app.route("/api/account/<bank_account_number>", methods=["GET"])
-def get_account_info(bank_account_number):
+@app.route("/api/account/<bank_account_number>", methods=["GET"]) # This route is used to pull the data needed for displaying user information from the SQL database and preparing it for JS
+def get_account_info(bank_account_number): # using the bank account num given in the request:
+    user = Users.query.filter_by(bank_account_number=bank_account_number).first()
+    # .first() returns the first matching row or None if not found.
+    # (It's still good practice even if bank account numbers are unique — avoids raising an exception.)
+
+    if user: # if it can find said user using their bank account number:
+        return jsonify({ # the JS object which we will use in accounts.html
+            "username": user.username,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "social_security": user.social_security,
+            "bank_account_number": user.bank_account_number,
+            "address": user.address
+        })
+    else: # if it can't find a user with said bank account number:
+        return jsonify({"error": "Account not found"}), 404
