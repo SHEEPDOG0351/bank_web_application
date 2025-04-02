@@ -25,5 +25,5 @@ def login():
     return render_template('login.html')
 
 @app.route('/accounts')
-def index():
+def accounts():
     return render_template('accounts.html')
