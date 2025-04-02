@@ -16,8 +16,10 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/signup')
+@app.route('/signup', methods = ['GET', 'POST'])
 def signup():
+    if request.method == 'POST':
+
     return render_template('signup.html')
 
 @app.route('/login')
@@ -27,3 +29,8 @@ def login():
 @app.route('/accounts')
 def accounts():
     return render_template('accounts.html')
+
+
+
+if __name__ == '__main__':
+        app.run(debug=True)
