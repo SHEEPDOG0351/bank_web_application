@@ -46,8 +46,12 @@ class Users_cards(db.Model):
 def index():
     return render_template('index.html')
 
-@app.route('/signup')
+
+
+@app.route('/signup', methods = ['GET', 'POST'])
 def signup():
+    if request.method == 'POST':
+
     return render_template('signup.html')
 
 @app.route('/login')
@@ -57,6 +61,10 @@ def login():
 @app.route('/accounts')
 def accounts():
     return render_template('accounts.html')
+
+
+
+
 
 @app.route("/api/account/<bank_account_number>", methods=["GET"]) # This route is used to pull the data needed for displaying user information from the SQL database and preparing it for JS
 def get_account_info(bank_account_number): # using the bank account num given in the request:
@@ -75,3 +83,6 @@ def get_account_info(bank_account_number): # using the bank account num given in
         })
     else: # if it can't find a user with said bank account number:
         return jsonify({"error": "Account not found"}), 404
+if __name__ == '__main__':
+   app.run(debug=True)
+
