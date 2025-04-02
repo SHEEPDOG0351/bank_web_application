@@ -5,7 +5,93 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Account Creation</title>
 </head>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background-color: rgb(47, 47, 47);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    button {
+        border: 1px transparent solid;
+        border-radius: 3px;
+    }
+
+    #account-info-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        border: 1px red solid;
+        width: 33%;
+        background-color: black;
+    }
+
+    #account-info-container h1 {
+        color: white;
+        padding: 20px 0px;
+    }
+
+    #account-info-content {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        background-color: rgb(19, 19, 19);
+        padding: 20px;
+    }
+
+    #account-info-content input {
+        font-size: 17px;
+        color: black;
+        padding: 10px 15px;
+    }
+
+    #view-info-btn {
+        background-color: rgb(0, 0, 212);
+        font-size: 20px;
+        color: white;
+    }
+
+</style>
+
 <body>
-    <input type="text" placeholder="">
+    <div id="account-info-container">
+        <h1>Account Information</h1>
+        <div id="account-info-content">
+            <input type="text" placeholder="Bank Account Number" id="user-bank-num-input">
+            <button id="view-info-btn">View</button>
+        </div>
+    </div>
 </body>
+
+<script>
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const users_bank_account_input = document.getElementById("user-bank-num-input")
+        const users_bank_account = users_bank_account_input.value
+        const view_info_button = document.getElementById("view-info-btn")
+        document.addEventListener("keydown", function(event) { // listens for enter key press
+            if (event.key == "Enter") {
+                view_info_button.click() // so if the user presses enter, it acts like they pressed the button
+            }
+        })
+
+        view_info_button.addEventListener("click", function() {
+            users_bank_account_input.style.display = "none"
+            view_info_button.style.display = "none"
+
+            
+        })
+    })
+
+</script>
+
 </html>
