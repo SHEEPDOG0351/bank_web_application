@@ -46,7 +46,6 @@ class Users_cards(db.Model):
 def index():
     return render_template('index.html')
 
-
 @app.route('/signup')
 def signup():
     return render_template('signup.html')
@@ -56,9 +55,8 @@ def login():
     return render_template('login.html')
 
 @app.route('/accounts')
-def index():
+def accounts():
     return render_template('accounts.html')
 
 @app.route("/api/account/<bank_account_number>", methods=["GET"])
 def get_account_info(bank_account_number):
-    
