@@ -46,7 +46,7 @@ class Users_cards(db.Model):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('accounts.html')
 
 
 
@@ -124,11 +124,13 @@ def get_account_info(bank_account_number): # using the bank account num given in
             "last_name": user.last_name,
             "social_security": user.social_security,
             "bank_account_number": user.bank_account_number,
-            "address": user.address
+            "address": user.address,
+            "password": user.password,
+            "phone_number": user.phone_number
         })
     else: # if it can't find a user with said bank account number:
         return jsonify({"error": "Account not found"}), 404
-
-
+    
+@app.route("/api/transaction/<>", methods=["GET"])
 if __name__ == '__main__':
-   app.run(debug=True)
+        app.run(debug=True)

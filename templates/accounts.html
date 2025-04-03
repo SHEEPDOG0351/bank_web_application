@@ -69,6 +69,14 @@
         font-size: 20px;
     }
 
+    #unordered-list {
+        padding: 10px;
+    }
+
+    .hide-first {
+        display: none;
+    }
+
 </style>
 
 <body>
@@ -78,52 +86,71 @@
             <input type="text" placeholder="Bank Account Number" id="user-bank-num-input">
             <button id="view-info-btn">View</button>
 
-            <h2 id="users-name">Users First and Last Name</h2>
+            <h2 class="hide-first" id="users-name" style="margin: 10px; text-align: center;">Users First and Last Name</h2>
             
-            <ul id="unordered-list">
-                <li class="list-item" id="username">Username: [Users Username]</li>
-                <li class="list-item" id="password">Password: [Users Password]</li>
-                <li class="list-item" id="ssn">SSN: [SSN]</li>
-                <li class="list-item" id="address">Address: [Address]</li>
-                <li class="list-item" id="phone_num">Phone Number: [Phone Number]</li>
+            <ul class="hide-first" id="unordered-list">
+                <li class="hide-first list-item" id="username"></li>
+                <li class="hide-first list-item" id="password"></li>
+                <li class="hide-first list-item" id="ssn"></li>
+                <li class="hide-first list-item" id="address"></li>
+                <li class="hide-first list-item" id="phone_num"></li>
             </ul>
         </div>
     </div>
 </body>
 
 <script>
-
     document.addEventListener("DOMContentLoaded", function() {
-        const users_bank_account_input = document.getElementById("user-bank-num-input")
-        const users_bank_account = users_bank_account_input.value
         const view_info_button = document.getElementById("view-info-btn")
-        document.addEventListener("keydown", function(event) { // listens for enter key press
+        const users_bank_account_input = document.getElementById("user-bank-num-input")
+
+        users_bank_account_input.addEventListener("keydown", function(event) { // listens for enter key press
             if (event.key == "Enter") {
                 view_info_button.click() // so if the user presses enter, it acts like they pressed the button
             }
         })
 
         view_info_button.addEventListener("click", async function() {
+            const users_bank_account = users_bank_account_input.value.trim(); // .trim() removes uneecessary spaces
             users_bank_account_input.style.display = "none"
             view_info_button.style.display = "none"
 
-            const users_bank_account_num = document.getElementById("")
-
+            const users_fullname = document.getElementById("users-name")
+            users_fullname.style.display = "flex"
+            users_fullname.style.textAlign = "center"
             const users_username = document.getElementById("username")
+            users_username.style.display = "flex"
             const users_password = document.getElementById("password")
+            users_password.style.display = "flex"
             const users_ssn = document.getElementById("ssn")
+            users_ssn.style.display = "flex"
             const users_address = document.getElementById("address")
+            users_address.style.display = "flex"
             const users_phone_num = document.getElementById("phone_num")
+            users_phone_num.style.display = "flex"
 
-            users_username.innerText = "";
-            const response = await fetch(`/api/Users/${users_bank_account}`)
-            const user_info_json = await response.json()
-            
+            const response = await fetch(`/api/account/${users_bank_account}`);
+            const user_info_json = await response.json()    
+
+            users_fullname.textContent = "";
+            users_fullname.textContent = `${user_info_json.first_name} ${user_info_json.last_name}`
+
+            users_username.textContent = "";
             users_username.textContent = `Username: ${user_info_json.username}`
 
+            users_password.textContent = "";
+            users_password.textContent = `Password: ${user_info_json.password}`
+
+            users_ssn.textContent = "";
+            users_ssn.textContent = `Social Security: ${user_info_json.social_security}`
+
+            users_address.textContent = "";
+            users_address.textContent = `Address: ${user_info_json.address}`
+
+            users_phone_num.textContent = "";
+            users_phone_num.textContent = `Phone Number: ${user_info_json.phone_number}`
         })
     })
-
 </script>
 
 </html>
