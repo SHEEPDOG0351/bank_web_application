@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, jsonify, flash, redirect, session
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text, create_engine, text
+import random
+import bcrypt
 conn_str = "mysql://root:cset155@localhost/exam_management_2"
 engine = create_engine(conn_str, echo = True)
 conn = engine.connect()
@@ -46,8 +48,55 @@ class Users_cards(db.Model):
 def index():
     return render_template('accounts.html')
 
-@app.route('/signup')
+
+
+@app.route('/signup', methods = ['GET', 'POST'])
 def signup():
+    if request.method == 'POST':
+        username = request.form['username']
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        social_security = request.form['social_security']
+        address = request.form['address']
+        phone_number = request.form['phone_number']
+        password = request.form['password']
+        
+        if not username or not first_name or not last_name or not social_security or not address or not phone_number or not password:
+            flash("All fields are required", "error")
+            return redirect('/signup') 
+        
+        existing_user = Users.query.filter_by(social_security=social_security).first()
+        if existing_user:
+            flash("A user with this SSN already exists", "error")
+            return redirect('/signup')  
+        
+        def hash(str):
+            sum=0
+            seacrch_string="abcdefghijklmnopqrstuvwxyz"
+            for char in str:
+                sum += seacrch_string.find(char)+1
+            return sum
+        
+        salt = bcrypt.gensalt
+        cerds = {}
+        
+
+        new_user = Users(
+            username=username,
+            first_name=first_name,
+            last_name=last_name,
+            social_security=social_security,
+            address=address,
+            phone_number=phone_number,
+            password=hashed_password,
+            bank_account_number="temporary_account_number" 
+        )
+        
+        db.session.add(new_user)
+        db.session.commit()
+        
+        flash("Account created successfully!", "success")
+        return redirect('/')   
     return render_template('signup.html')
 
 @app.route('/login')
@@ -57,6 +106,10 @@ def login():
 @app.route('/accounts')
 def accounts():
     return render_template('accounts.html')
+
+
+
+
 
 @app.route("/api/account/<bank_account_number>", methods=["GET"]) # This route is used to pull the data needed for displaying user information from the SQL database and preparing it for JS
 def get_account_info(bank_account_number): # using the bank account num given in the request:
