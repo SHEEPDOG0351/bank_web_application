@@ -55,16 +55,28 @@
             }
         })
 
-        submit_btn.addEventListener("click", async function() {
-            const card_num = card_num_input.value
-            const expiry_date = expiry_date_input.value
-            const ccv = ccv_input.value
-            const transaction_amount = transaction_amount_input.value
+        submit_btn.addEventListener("click", async function () {
+            const card_num = card_num_input.value.trim();
+            const expiry_date = expiry_date_input.value.trim();
+            const ccv = ccv_input.value.trim();
+            const transaction_amount = transaction_amount_input.value.trim();
 
-            const response = await fetch(`/api/account/${users_bank_account}`);
-            const user_info_json = await response.json()
-        })
+            const response = await fetch("/api/transaction", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    card_number: card_num,
+                    expiry_date: expiry_date,
+                    ccv: ccv,
+                    amount: transaction_amount
+                })
+            });
 
+            const result = await response.json();
+            console.log(result); // You could display it on the page
+        });
     })
 </script>
 

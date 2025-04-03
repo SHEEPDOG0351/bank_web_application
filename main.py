@@ -107,10 +107,6 @@ def login():
 def accounts():
     return render_template('accounts.html')
 
-
-
-
-
 @app.route("/api/account/<bank_account_number>", methods=["GET"]) # This route is used to pull the data needed for displaying user information from the SQL database and preparing it for JS
 def get_account_info(bank_account_number): # using the bank account num given in the request:
     user = Users.query.filter_by(bank_account_number=bank_account_number).first()
@@ -131,6 +127,34 @@ def get_account_info(bank_account_number): # using the bank account num given in
     else: # if it can't find a user with said bank account number:
         return jsonify({"error": "Account not found"}), 404
     
-@app.route("/api/transaction/<>", methods=["GET"])
+@app.route("/api/transaction", methods=["POST"])
+def process_transaction():
+    data = request.get_json()
+    card_number = data.get("card_number")
+    expiry_date = data.get("expiry_date")
+    ccv = data.get("ccv")
+    amount = int(data.get("amount"))
+
+    # Find card
+    card = Users_cards.query.filter_by(
+        card_number=card_number,
+        expiry_date=expiry_date,
+        ccv=ccv
+    ).first()
+
+    if not card:
+        return jsonify({"error": "Card not found or invalid info"}), 404
+
+    # Get bank account and add amount
+    bank_account = Bank_accounts.query.filter_by(bank_account_number=card.bank_account_number).first()
+    if not bank_account:
+        return jsonify({"error": "Associated bank account not found"}), 404
+
+    # Credit the amount
+    bank_account.balance += amount
+    db.session.commit()
+
+    return jsonify({"message": "Transaction successful", "new_balance": bank_account.balance})
+
 if __name__ == '__main__':
         app.run(debug=True)
