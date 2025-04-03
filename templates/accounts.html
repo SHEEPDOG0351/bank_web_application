@@ -11,6 +11,7 @@
         margin: 0;
         padding: 0;
         box-sizing: border-box;
+        color: white;
     }
 
     body {
@@ -36,7 +37,6 @@
     }
 
     #account-info-container h1 {
-        color: white;
         padding: 20px 0px;
     }
 
@@ -57,7 +57,16 @@
     #view-info-btn {
         background-color: rgb(0, 0, 212);
         font-size: 20px;
-        color: white;
+    }
+
+    #unordered-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .list-item {
+        font-size: 20px;
     }
 
 </style>
@@ -68,6 +77,16 @@
         <div id="account-info-content">
             <input type="text" placeholder="Bank Account Number" id="user-bank-num-input">
             <button id="view-info-btn">View</button>
+
+            <h2 id="users-name">Users First and Last Name</h2>
+            
+            <ul id="unordered-list">
+                <li class="list-item" id="username">Username: [Users Username]</li>
+                <li class="list-item" id="password">Password: [Users Password]</li>
+                <li class="list-item" id="ssn">SSN: [SSN]</li>
+                <li class="list-item" id="address">Address: [Address]</li>
+                <li class="list-item" id="phone_num">Phone Number: [Phone Number]</li>
+            </ul>
         </div>
     </div>
 </body>
@@ -84,11 +103,24 @@
             }
         })
 
-        view_info_button.addEventListener("click", function() {
+        view_info_button.addEventListener("click", async function() {
             users_bank_account_input.style.display = "none"
             view_info_button.style.display = "none"
 
+            const users_bank_account_num = document.getElementById("")
+
+            const users_username = document.getElementById("username")
+            const users_password = document.getElementById("password")
+            const users_ssn = document.getElementById("ssn")
+            const users_address = document.getElementById("address")
+            const users_phone_num = document.getElementById("phone_num")
+
+            users_username.innerText = "";
+            const response = await fetch(`/api/Users/${users_bank_account}`)
+            const user_info_json = await response.json()
             
+            users_username.textContent = `Username: ${user_info_json.username}`
+
         })
     })
 
