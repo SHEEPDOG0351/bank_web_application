@@ -236,7 +236,7 @@
 
             if (senders_account_num) {
                 try {
-                const response = await fetch("/api/transaction", {
+                const response = await fetch("/api/transfer", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -258,7 +258,7 @@
                 }
             } else if (senders_card_num) {
                 try {
-                    const response = await fetch("/api/transaction", {
+                    const response = await fetch("/api/transfer", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({

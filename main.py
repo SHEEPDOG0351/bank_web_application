@@ -189,7 +189,7 @@ def transfer():
     data = request.get_json()
 
     recipients_account_num = data.get("recipients_account_num")
-    senders_transaction_amount = data.get("senders_transaction_amount")
+    senders_transaction_amount = int(data.get("senders_transaction_amount"))
 
     senders_account_num = data.get("senders_account_num")
 
@@ -214,6 +214,7 @@ def transfer():
     if not recipient:
         return jsonify({"error": "Recipient's account num wasn't found"}), 404
     
+    print(f"Sender.balance type: {type(sender.balance)}\nsenders transaction amount type: {type(senders_transaction_amount)}")
     if sender.balance < senders_transaction_amount:
         return jsonify({"error": "Insufficient funds"}), 400
     
