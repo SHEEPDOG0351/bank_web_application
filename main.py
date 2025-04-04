@@ -102,7 +102,7 @@ def get_db_connection():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-        if request.method == 'POST':
+    if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
         
@@ -125,7 +125,7 @@ def login():
         else:
             error = "Invalid username or password"
             return render_template('login.html', error=error)
-    
+
     return render_template('login.html')
 
 @app.route('/accounts')
@@ -164,7 +164,6 @@ def process_transaction():
     ccv = data.get("ccv")
     amount = int(data.get("amount"))
 
-    # Find card
     card = Users_cards.query.filter_by(
         card_number=card_number,
         expiry_date=expiry_date,
