@@ -11,14 +11,6 @@
         margin: 0;
         padding: 0;
         box-sizing: border-box;
-        color: white;
-    }
-
-    body {
-        background-color: rgb(47, 47, 47);
-        display: flex;
-        align-items: center;
-        justify-content: center;
     }
 
     button {
@@ -26,17 +18,52 @@
         border-radius: 3px;
     }
 
+    body {
+        background-color: rgb(47, 47, 47);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        color: white;
+    }
+
+    nav {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: black;
+        margin-bottom: 20px;
+    }
+
+    nav ul {
+        list-style-type: none;
+        display: flex;
+        gap: 10px;
+        text-decoration: none;
+        padding: 20px;
+    }
+
+    nav ul li {
+        display: flex;
+        flex-direction: column;
+        font-size: 20px;
+    }
+
+    nav ul li a {
+        text-decoration: none;
+        color: white;
+    }
+
     #account-info-container {
         display: flex;
         justify-content: center;
         align-items: center;
         flex-direction: column;
-        border: 1px red solid;
         width: 33%;
-        background-color: black;
     }
 
     #account-info-container h1 {
+        font-size: 42px;
         padding: 20px 0px;
     }
 
@@ -44,19 +71,23 @@
         display: flex;
         flex-direction: column;
         gap: 10px;
-        background-color: rgb(19, 19, 19);
-        padding: 20px;
+        padding-bottom: 10px;
     }
 
     #account-info-content input {
-        font-size: 17px;
-        color: black;
-        padding: 10px 15px;
+        font-size: 20px;
+        padding: 15px 10px;
     }
 
     #view-info-btn {
-        background-color: rgb(0, 0, 212);
-        font-size: 20px;
+        font-size: 27px;
+        text-align: center;
+        background-color: red;
+        color: white;
+        border: 1px transparent solid;
+        border-radius: 5px;
+        padding: 10px;
+        margin-top: 10px;
     }
 
     #unordered-list {
@@ -69,61 +100,97 @@
         font-size: 20px;
     }
 
+    #unordered-list {
+        padding: 10px;
+    }
+
+    .hide-first {
+        display: none;
+    }
+
 </style>
 
 <body>
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('index') }}">Home</a></li>
+            <li><a href="{{ url_for('accounts') }}">Accounts</a></li>
+            <li><a href="{{ url_for('login') }}">Login</a></li>
+            <li><a href="{{ url_for('signup') }}">Sign Up</a></li>
+            <li><a href="{{ url_for('transactions') }}">Transactions</a></li>
+        </ul>
+    </nav>
     <div id="account-info-container">
         <h1>Account Information</h1>
         <div id="account-info-content">
             <input type="text" placeholder="Bank Account Number" id="user-bank-num-input">
             <button id="view-info-btn">View</button>
 
-            <h2 id="users-name">Users First and Last Name</h2>
+            <h2 class="hide-first" id="users-name" style="margin: 10px; text-align: center;">Users First and Last Name</h2>
             
-            <ul id="unordered-list">
-                <li class="list-item" id="username">Username: [Users Username]</li>
-                <li class="list-item" id="password">Password: [Users Password]</li>
-                <li class="list-item" id="ssn">SSN: [SSN]</li>
-                <li class="list-item" id="address">Address: [Address]</li>
-                <li class="list-item" id="phone_num">Phone Number: [Phone Number]</li>
+            <ul class="hide-first" id="unordered-list">
+                <li class="hide-first list-item" id="username"></li>
+                <li class="hide-first list-item" id="password"></li>
+                <li class="hide-first list-item" id="ssn"></li>
+                <li class="hide-first list-item" id="address"></li>
+                <li class="hide-first list-item" id="phone_num"></li>
             </ul>
         </div>
     </div>
 </body>
 
 <script>
-
     document.addEventListener("DOMContentLoaded", function() {
-        const users_bank_account_input = document.getElementById("user-bank-num-input")
-        const users_bank_account = users_bank_account_input.value
         const view_info_button = document.getElementById("view-info-btn")
-        document.addEventListener("keydown", function(event) { // listens for enter key press
+        const users_bank_account_input = document.getElementById("user-bank-num-input")
+
+        users_bank_account_input.addEventListener("keydown", function(event) { // listens for enter key press
             if (event.key == "Enter") {
                 view_info_button.click() // so if the user presses enter, it acts like they pressed the button
             }
         })
 
         view_info_button.addEventListener("click", async function() {
+            const users_bank_account = users_bank_account_input.value.trim(); // .trim() removes uneecessary spaces
             users_bank_account_input.style.display = "none"
             view_info_button.style.display = "none"
 
-            const users_bank_account_num = document.getElementById("")
-
+            const users_fullname = document.getElementById("users-name")
+            users_fullname.style.display = "flex"
+            users_fullname.style.textAlign = "center"
             const users_username = document.getElementById("username")
+            users_username.style.display = "flex"
             const users_password = document.getElementById("password")
+            users_password.style.display = "flex"
             const users_ssn = document.getElementById("ssn")
+            users_ssn.style.display = "flex"
             const users_address = document.getElementById("address")
+            users_address.style.display = "flex"
             const users_phone_num = document.getElementById("phone_num")
+            users_phone_num.style.display = "flex"
 
-            users_username.innerText = "";
-            const response = await fetch(`/api/Users/${users_bank_account}`)
-            const user_info_json = await response.json()
-            
+            const response = await fetch(`/api/account/${users_bank_account}`);
+            const user_info_json = await response.json()    
+
+            users_fullname.textContent = "";
+            users_fullname.textContent = `${user_info_json.first_name} ${user_info_json.last_name}`
+
+            users_username.textContent = "";
             users_username.textContent = `Username: ${user_info_json.username}`
 
+            users_password.textContent = "";
+            users_password.textContent = `Password: ${user_info_json.password}`
+
+            users_ssn.textContent = "";
+            users_ssn.textContent = `Social Security: ${user_info_json.social_security}`
+
+            users_address.textContent = "";
+            users_address.textContent = `Address: ${user_info_json.address}`
+
+            users_phone_num.textContent = "";
+            users_phone_num.textContent = `Phone Number: ${user_info_json.phone_number}`
         })
     })
-
 </script>
 
 </html>

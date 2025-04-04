@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Start a Transaction</title>
+</head>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background-color: rgb(47, 47, 47);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        color: white;
+    }
+
+    nav {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: black;
+        margin-bottom: 20px;
+    }
+
+    nav ul {
+        list-style-type: none;
+        display: flex;
+        gap: 10px;
+        text-decoration: none;
+        padding: 20px;
+    }
+
+    nav ul li {
+        display: flex;
+        flex-direction: column;
+        font-size: 20px;
+    }
+
+    nav ul li a {
+        text-decoration: none;
+        color: white;
+    }
+
+    h1 {
+        text-align: center;
+        padding: 20px;
+    }
+
+    .body-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .body-content input {
+        font-size: 20px;
+        padding: 15px 10px;
+    }
+
+    .body-content button {
+        font-size: 20px;
+        text-align: center;
+        background-color: red;
+        color: white;
+        border: 1px transparent solid;
+        border-radius: 5px;
+        padding: 15px;
+        margin-top: 10px;
+    }
+
+</style>
+
+<body>
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('index') }}">Home</a></li>
+            <li><a href="{{ url_for('accounts') }}">Accounts</a></li>
+            <li><a href="{{ url_for('login') }}">Login</a></li>
+            <li><a href="{{ url_for('signup') }}">Sign Up</a></li>
+            <li><a href="{{ url_for('transactions') }}">Transactions</a></li>
+        </ul>
+    </nav>
+    <h1>Deposit / Withdraw Money Below</h1>
+
+    <div class="body-container">
+        <div class="body-content">
+            <input type="text" name="card_number" id="card_number_input" placeholder="Card Number">
+            <input type="text" name="expiry_date" id="expiry_date_input" placeholder="Expiry Date">
+            <input type="text" name="CCV" id="ccv_input" placeholder="CCV">
+            <input type="text" name="amount_for_transaction" id="transaction_amount_input" placeholder="Transaction Amount">
+            <button id="submit_btn">Submit Transaction</button>
+        </div>
+    </div>
+</body>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const card_num_input = document.getElementById("card_number_input")
+        const expiry_date_input = document.getElementById("expiry_date_input")
+        const ccv_input = document.getElementById("ccv_input")
+        const transaction_amount_input = document.getElementById("transaction_amount_input")
+        const submit_btn = document.getElementById("submit_btn")
+
+        transaction_amount_input.addEventListener("keydown", function(event) {
+            if (event.key == "Enter") {
+                submit_btn.click()
+            }
+        })
+
+        submit_btn.addEventListener("click", async function () {
+            const card_num = card_num_input.value.trim();
+            const expiry_date = expiry_date_input.value.trim();
+            const ccv = ccv_input.value.trim();
+            const transaction_amount = transaction_amount_input.value.trim();
+
+            const response = await fetch("/api/transaction", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    card_number: card_num,
+                    expiry_date: expiry_date,
+                    ccv: ccv,
+                    amount: transaction_amount
+                })
+            });
+
+            const result = await response.json();
+            console.log(result); // You could display it on the page
+        });
+    });
+</script>
+
+</html>
