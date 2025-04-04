@@ -70,15 +70,7 @@ def signup():
             flash("A user with this SSN already exists", "error")
             return redirect('/signup')  
         
-        def hash(str):
-            sum=0
-            seacrch_string="abcdefghijklmnopqrstuvwxyz"
-            for char in str:
-                sum += seacrch_string.find(char)+1
-            return sum
-        
-        salt = bcrypt.gensalt
-        cerds = {}
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         
 
         new_user = Users(
@@ -99,8 +91,41 @@ def signup():
         return redirect('/')   
     return render_template('signup.html')
 
-@app.route('/login')
+def get_db_connection():
+    connection = mysql.connector.connect(
+        host='localhost',
+        user='root',  # your MySQL username
+        password='password',  # your MySQL password
+        database='banking_app'  # your database name
+    )
+    return connection
+
+@app.route('/login', methods=['GET', 'POST'])
 def login():
+        if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        if not username or not password:
+            error = "Both fields (Username and Password) are required"
+            return render_template('login.html', error=error)
+        
+
+        connection = get_db_connection()
+        cursor = connection.cursor(dictionary=True)
+        
+        cursor.execute("SELECT * FROM Users WHERE username = %s", (username,))
+        user = cursor.fetchone()
+        
+        if user and hash_password(user['password'], password):
+            # Store user session
+            session['username'] = username
+            session['account_type'] = 'user'  # You can also add admin logic here if needed
+            return redirect('/dashboard')  # Redirect to a dashboard or user home page
+        else:
+            error = "Invalid username or password"
+            return render_template('login.html', error=error)
+    
     return render_template('login.html')
 
 @app.route('/accounts')
