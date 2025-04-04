@@ -107,6 +107,10 @@ def login():
 def accounts():
     return render_template('accounts.html')
 
+@app.route('/transactions')
+def transactions():
+    return render_template('transactions.html')
+
 @app.route("/api/account/<bank_account_number>", methods=["GET"]) # This route is used to pull the data needed for displaying user information from the SQL database and preparing it for JS
 def get_account_info(bank_account_number): # using the bank account num given in the request:
     user = Users.query.filter_by(bank_account_number=bank_account_number).first()
