@@ -44,6 +44,7 @@ class Users_cards(db.Model):
     ccv = db.Column(db.Integer, nullable=False)
     balance = db.Column(db.Integer, nullable=False)
 
+
 @app.route('/')
 def index():
     return render_template('accounts.html')
@@ -117,10 +118,10 @@ def login():
         cursor.execute("SELECT * FROM Users WHERE username = %s", (username,))
         user = cursor.fetchone()
         
-        if user and hash_password(user['password'], password):
+        if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
             session['username'] = username
             session['account_type'] = 'user'  
-            return redirect('/dashboard')
+            return redirect('/dashboard')  
         else:
             error = "Invalid username or password"
             return render_template('login.html', error=error)
