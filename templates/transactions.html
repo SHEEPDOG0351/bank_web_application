@@ -90,6 +90,7 @@
             <li><a href="{{ url_for('transactions') }}">Transactions</a></li>
         </ul>
     </nav>
+
     <h1>Deposit / Withdraw Money Below</h1>
 
     <div class="body-container">
@@ -98,7 +99,10 @@
             <input type="text" name="expiry_date" id="expiry_date_input" placeholder="Expiry Date">
             <input type="text" name="CCV" id="ccv_input" placeholder="CCV">
             <input type="text" name="amount_for_transaction" id="transaction_amount_input" placeholder="Transaction Amount">
-            <button id="submit_btn">Submit Transaction</button>
+            <div class="buttons-container">
+                <button id="deposit-btn">Deposit</button>
+                <button id="withdraw-btn">Withdraw</button>
+            </div>
         </div>
     </div>
 </body>
@@ -109,7 +113,8 @@
         const expiry_date_input = document.getElementById("expiry_date_input")
         const ccv_input = document.getElementById("ccv_input")
         const transaction_amount_input = document.getElementById("transaction_amount_input")
-        const submit_btn = document.getElementById("submit_btn")
+        const deposit_btn = document.getElementById("deposit-btn")
+        const withdraw_btn = document.getElementById("withdraw-btn")
 
         transaction_amount_input.addEventListener("keydown", function(event) {
             if (event.key == "Enter") {
@@ -117,28 +122,64 @@
             }
         })
 
-        submit_btn.addEventListener("click", async function () {
+        deposit_btn.addEventListener("click", async function () {
             const card_num = card_num_input.value.trim();
             const expiry_date = expiry_date_input.value.trim();
             const ccv = ccv_input.value.trim();
             const transaction_amount = transaction_amount_input.value.trim();
 
-            const response = await fetch("/api/transaction", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    card_number: card_num,
-                    expiry_date: expiry_date,
-                    ccv: ccv,
-                    amount: transaction_amount
-                })
-            });
+            try {
+                const response = await fetch("/api/transaction", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        card_number: card_num,
+                        expiry_date: expiry_date,
+                        ccv: ccv,
+                        amount: transaction_amount
+                    })
+                });
 
-            const result = await response.json();
-            console.log(result); // You could display it on the page
+                const result = await response.json();
+
+                if (!response.ok) {
+                    console.error("Server error:", result.error);
+                } else {
+                    console.log("Success:", result.message, "New balance:", result.new_balance);
+                }
+            } catch (error) {
+                console.error("Fetch failed:", error);
+            }
         });
+
+        withdraw_btn.addEventListener("click", async function() {
+            const card_num = card_num_input.value.trim();
+            const expiry_date = expiry_date_input.value.trim();
+            const ccv = ccv_input.value.trim();
+            const transaction_amount = transaction_amount_input.value.trim();
+
+            try {
+                const response = await fetch("/api/transaction", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        card_number: card_num,
+                        expiry_date: expiry_date,
+                        ccv: ccv,
+                        amount: -transaction_amount
+                    })
+                }); 
+                const result = await response.json();
+
+                if (!response.ok) {
+                    console.error("Server error:", result.error);
+                } else {
+                    console.log("Success:", result.message, "New balance:", result.new_balance);
+                }
+            } catch (error) {
+                console.error("Fetch failed:", error);
+            } 
+        })
     });
 </script>
 
