@@ -94,17 +94,17 @@ def signup():
 def get_db_connection():
     connection = mysql.connector.connect(
         host='localhost',
-        user='root',  # your MySQL username
-        password='password',  # your MySQL password
-        database='banking_app'  # your database name
+        user='root', 
+        password='password', 
+        database='banking_app'  
     )
     return connection
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
         if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+            username = request.form['username']
+            password = request.form['password']
         
         if not username or not password:
             error = "Both fields (Username and Password) are required"
@@ -118,15 +118,12 @@ def login():
         user = cursor.fetchone()
         
         if user and hash_password(user['password'], password):
-            # Store user session
             session['username'] = username
-            session['account_type'] = 'user'  # You can also add admin logic here if needed
-            return redirect('/dashboard')  # Redirect to a dashboard or user home page
+            session['account_type'] = 'user'  
+            return redirect('/dashboard')
         else:
             error = "Invalid username or password"
             return render_template('login.html', error=error)
-    
-    return render_template('login.html')
 
 @app.route('/accounts')
 def accounts():
