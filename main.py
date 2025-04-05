@@ -189,5 +189,51 @@ def process_transaction():
     return jsonify({"message": "Transaction successful", "new_balance": bank_account.balance})
 
 
+@app.route("/api/transfer", methods=["POST"])
+def transfer():
+    data = request.get_json()
+
+    recipients_account_num = data.get("recipients_account_num")
+    senders_transaction_amount = int(data.get("senders_transaction_amount"))
+
+    senders_account_num = data.get("senders_account_num")
+
+    senders_card_num = data.get("senders_card_num")
+    senders_card_ccv = data.get("senders_card_ccv")
+
+    if senders_account_num:
+        sender = Bank_accounts.query.filter_by(bank_account_number = senders_account_num).first()
+
+    elif senders_card_num:
+        senders_card = Users_cards.query.filter_by(card_number = senders_card_num).first()
+        if not senders_card:
+            return jsonify({"error": "Invalid card number"}), 404
+        sender = Bank_accounts.query.filter_by(bank_account_number=senders_card.bank_account_number).first()
+    else:
+        return jsonify({"error": "No valid sender provided"}), 400
+    
+    if not sender:
+        return jsonify({"error": "Sender account not found"}), 404
+    
+    recipient = Bank_accounts.query.filter_by(bank_account_number=recipients_account_num).first()
+    if not recipient:
+        return jsonify({"error": "Recipient's account num wasn't found"}), 404
+    
+    print(f"Sender.balance type: {type(sender.balance)}\nsenders transaction amount type: {type(senders_transaction_amount)}")
+    if sender.balance < senders_transaction_amount:
+        return jsonify({"error": "Insufficient funds"}), 400
+    
+    # Performs the transaction
+    sender.balance -= senders_transaction_amount
+    recipient.balance += senders_transaction_amount
+    db.session.commit()
+
+    return jsonify({
+        "message": "Transfer successful",
+        "sender_new_balance": sender.balance
+    })
+
+
+
 if __name__ == '__main__':
         app.run(debug=True)
