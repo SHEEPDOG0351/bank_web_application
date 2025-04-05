@@ -68,7 +68,7 @@ def signup():
         
         existing_user = Users.query.filter_by(social_security=social_security).first()
         if existing_user:
-            flash("A user with this SSN already exists", "error")
+            flash(" user already exists", "error")
             return redirect('/signup')  
         
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
@@ -89,7 +89,7 @@ def signup():
         db.session.commit()
         
         flash("Account created successfully!", "success")
-        return redirect('/')   
+        return redirect('/waiting')   
     return render_template('signup.html')
 
 def get_db_connection():
@@ -127,6 +127,10 @@ def login():
             return render_template('login.html', error=error)
 
     return render_template('login.html')
+
+@app.route('/waiting')
+def waiting():
+    return render_template('waiting.html')
 
 @app.route('/accounts')
 def accounts():
@@ -184,6 +188,7 @@ def process_transaction():
 
     return jsonify({"message": "Transaction successful", "new_balance": bank_account.balance})
 
+
 @app.route("/api/transfer", methods=["POST"])
 def transfer():
     data = request.get_json()
@@ -227,6 +232,7 @@ def transfer():
         "message": "Transfer successful",
         "sender_new_balance": sender.balance
     })
+
 
 
 if __name__ == '__main__':
