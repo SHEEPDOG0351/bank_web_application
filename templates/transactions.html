@@ -22,6 +22,18 @@
         color: white;
     }
 
+    button {
+        font-size: 20px;
+        text-align: center;
+        background-color: red;
+        color: white;
+        border: 1px transparent solid;
+        border-radius: 5px;
+        padding: 15px;
+        margin-top: 10px;
+        margin-bottom: 15px;
+    }
+
     nav {
         display: flex;
         justify-content: center;
@@ -67,15 +79,8 @@
         padding: 15px 10px;
     }
 
-    .body-content button {
-        font-size: 20px;
-        text-align: center;
-        background-color: red;
-        color: white;
-        border: 1px transparent solid;
-        border-radius: 5px;
-        padding: 15px;
-        margin-top: 10px;
+    #second-body-content {
+        display: none;
     }
 
 </style>
@@ -105,6 +110,25 @@
             </div>
         </div>
     </div>
+
+    <h1>Send Someone Money</h1>
+
+    <h2>Do you want to use your bank account, or a card?</h2>
+    <div class="buttons-container">
+        <button id="use-bank-account-btn">Use Bank Account</button>
+        <button id="use-card-btn">Use Card</button>
+    </div>
+
+    <div class="body-container">
+        <div class="body-content" id="second-body-content">
+            <input type="text" name="senders-account-num" id="senders-account-num-input" placeholder="Your Account Number">
+            <input type="text" name="senders-card-num" id="senders-card-num-input" placeholder="Your Card Num">
+            <input type="text" name="senders--card-ccv" id="senders-card-ccv-input" placeholder="Your Card's CCV">
+            <input type="text" name="recipients-account-num" id="recipients-account-num-input" placeholder="Recipient's Account Number">
+            <input type="text" name="Transaction Amount" id="transaction-amount-input" placeholder="Amount To Send">
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
 </body>
 
 <script>
@@ -115,6 +139,14 @@
         const transaction_amount_input = document.getElementById("transaction_amount_input")
         const deposit_btn = document.getElementById("deposit-btn")
         const withdraw_btn = document.getElementById("withdraw-btn")
+        const send_btn = document.getElementById("send-btn")
+        const senders_account_num_input = document.getElementById("senders-account-num-input")
+        const recipients_account_num_input = document.getElementById("recipients-account-num-input")
+        const senders_transaction_amount_input = document.getElementById("transaction-amount-input")
+        const senders_card_num_input = document.getElementById("senders-card-num-input")
+        const senders_card_ccv_input = document.getElementById("senders-card-ccv-input")
+        const use_bank_account_btn = document.getElementById("use-bank-account-btn")
+        const use_card_btn = document.getElementById("use-card-btn")
 
         transaction_amount_input.addEventListener("keydown", function(event) {
             if (event.key == "Enter") {
@@ -180,6 +212,73 @@
                 console.error("Fetch failed:", error);
             } 
         })
+
+        use_bank_account_btn.addEventListener("click", function(){
+            document.getElementById("second-body-content").style.display = "flex"
+            senders_card_num_input.style.display = "none"
+            senders_card_ccv_input.style.display = "none"
+            senders_account_num_input.style.display = "flex"
+        })
+
+        use_card_btn.addEventListener("click", function() {
+            document.getElementById("second-body-content").style.display = "flex"
+            senders_account_num_input.style.display = "none"
+            senders_card_num_input.style.display = "flex"
+            senders_card_ccv_input.style.display = "flex"
+        })
+
+        send_btn.addEventListener("click", async function() {
+            const senders_account_num = senders_account_num_input.value
+            const senders_card_num = senders_account_num_input.value
+            const recipients_account_num = recipients_account_num_input.value
+            const senders_transaction_amount = senders_transaction_amount_input.value
+            const senders_card_ccv = senders_card_ccv_input.value
+
+            if (senders_account_num) {
+                try {
+                const response = await fetch("/api/transfer", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        recipients_account_num: recipients_account_num,
+                        senders_account_num: senders_account_num,
+                        senders_transaction_amount: senders_transaction_amount
+                    })
+                });
+
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        console.error("Server error:", result.error);
+                    } else {
+                        console.log("Success:", result.message, "New balance:", result.new_balance);
+                    }
+                } catch (error) {
+                    console.error("Fetch failed:", error);
+                }
+            } else if (senders_card_num) {
+                try {
+                    const response = await fetch("/api/transfer", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            recipients_account_num: recipients_account_num,
+                            senders_card_num: senders_card_num,
+                            senders_card_ccv: senders_card_ccv,
+                            senders_transaction_amount: senders_transaction_amount
+                        })
+                    });
+                    const result = await response.json();
+                    if (!response.ok) {
+                        console.error("Server error:", result.error);
+                    } else {
+                        console.log("Success:", result.message, "New balance:", result.new_balance);
+                    }
+                } catch (error) {
+                    console.error("Fetch failed:", error);
+                }
+            }
+        });
     });
 </script>
 
