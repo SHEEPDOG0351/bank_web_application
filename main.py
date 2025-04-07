@@ -3,12 +3,13 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import text, create_engine, text
 import random
 import bcrypt
+import mysql.connector
 conn_str = "mysql://root:cset155@localhost/exam_management_2"
 engine = create_engine(conn_str, echo = True)
 conn = engine.connect()
 
 app = Flask(__name__)
-
+app.config['SECRET_KEY'] = 'mysecretkey123'
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:cset155@localhost/banking_app"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -68,7 +69,7 @@ def signup():
         
         existing_user = Users.query.filter_by(social_security=social_security).first()
         if existing_user:
-            flash("A user with this SSN already exists", "error")
+            flash(" user already exists", "error")
             return redirect('/signup')  
         
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
@@ -82,15 +83,17 @@ def signup():
             address=address,
             phone_number=phone_number,
             password=hashed_password,
-            bank_account_number="temporary_account_number" 
+            bank_account_number="temp_acc_num", 
+            approved=False
         )
         
         db.session.add(new_user)
         db.session.commit()
         
         flash("Account created successfully!", "success")
-        return redirect('/')   
+        return redirect('/waiting')   
     return render_template('signup.html')
+
 
 def get_db_connection():
     connection = mysql.connector.connect(
@@ -103,30 +106,109 @@ def get_db_connection():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
+   if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        
+
         if not username or not password:
             error = "Both fields (Username and Password) are required"
             return render_template('login.html', error=error)
-        
 
-        connection = get_db_connection()
+        connection = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='password',
+            database='banking_app'
+        )
         cursor = connection.cursor(dictionary=True)
-        
         cursor.execute("SELECT * FROM Users WHERE username = %s", (username,))
         user = cursor.fetchone()
-        
+
         if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
             session['username'] = username
             session['account_type'] = 'user'  
-            return redirect('/dashboard')  
+            return redirect('/dashboard')
         else:
             error = "Invalid username or password"
             return render_template('login.html', error=error)
 
-    return render_template('login.html')
+        return render_template('login.html')
+   
+def ensure_single_admin():
+  with app.app_context():  
+        existing_admin = Admin_accounts.query.first()
+        if not existing_admin:
+            hashed_password = bcrypt.hashpw('admin_password'.encode('utf-8'), bcrypt.gensalt())
+            new_admin = Admin_accounts(username='admin', password=hashed_password)
+            db.session.add(new_admin)
+            db.session.commit()
+
+
+ensure_single_admin()
+   
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        admin_account = Admin_accounts.query.filter_by(username=username).first()
+
+        if admin_account and bcrypt.checkpw(password.encode('utf-8'), admin_account.password.encode('utf-8')):
+            session['username'] = username
+            session['account_type'] = 'admin'  
+            return redirect('/admin/dashboard')
+
+        error = "Invalid username or password"
+        return render_template('admin_login.html', error=error)
+
+    return render_template('admin_login.html')
+
+
+@app.route('/admin/dashboard')
+def admin_dashboard():
+    if session.get('account_type') != 'admin':
+        return redirect('/admin/login')
+
+    unapproved_users = Users.query.filter_by(approved=False).all()
+    return render_template('admin_dashboard.html', users=unapproved_users)
+
+
+@app.route('/admin/approve_user/<social_security>', methods=['POST'])
+def approve_user(social_security):
+    if session.get('account_type') != 'admin':
+        return redirect('/admin/login')
+
+    user = Users.query.filter_by(social_security=social_security).first()
+
+    if not user:
+        flash("User not found", "error")
+        return redirect('/admin/dashboard')
+
+    new_account_number = str(random.randint(100000000, 999999999))
+
+
+    user.bank_account_number = new_account_number
+    user.approved = True
+    db.session.commit()
+
+    new_bank_account = Bank_accounts(
+        bank_account_number=new_account_number,
+        social_security=user.social_security,
+        balance=0  
+    )
+    db.session.add(new_bank_account)
+    db.session.commit()
+
+    flash("User approved successfully!", "success")
+    return redirect('/admin/dashboard')
+
+
+
+
+@app.route('/waiting')
+def waiting():
+    return render_template('waiting.html')
 
 @app.route('/accounts')
 def accounts():
@@ -184,6 +266,7 @@ def process_transaction():
 
     return jsonify({"message": "Transaction successful", "new_balance": bank_account.balance})
 
+
 @app.route("/api/transfer", methods=["POST"])
 def transfer():
     data = request.get_json()
@@ -227,6 +310,7 @@ def transfer():
         "message": "Transfer successful",
         "sender_new_balance": sender.balance
     })
+
 
 
 if __name__ == '__main__':
