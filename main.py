@@ -181,6 +181,7 @@ def admin_dashboard():
     if session.get('account_type') != 'admin':
         return redirect('/admin/login')
 
+    
     unapproved_users = Users.query.filter_by(approved=False).all()
     return render_template('admin_dashboard.html', users=unapproved_users)
 
@@ -196,8 +197,7 @@ def approve_user(social_security):
         flash("User not found", "error")
         return redirect('/admin/dashboard')
 
-    new_account_number = str(random.randint(100000000, 999999999))
-
+    new_account_number = str(random.randint(100000000, 999999999))  
 
     user.bank_account_number = new_account_number
     user.approved = True
@@ -212,6 +212,25 @@ def approve_user(social_security):
     db.session.commit()
 
     flash("User approved successfully!", "success")
+    return redirect('/admin/dashboard')
+
+
+
+@app.route('/admin/deny_user/<social_security>', methods=['POST'])
+def deny_user(social_security):
+    if session.get('account_type') != 'admin':
+        return redirect('/admin/login')
+
+    user = Users.query.filter_by(social_security=social_security).first()
+
+    if not user:
+        flash("User not found", "error")
+        return redirect('/admin/dashboard')
+
+    db.session.delete(user)
+    db.session.commit()
+
+    flash("User denied and removed successfully!", "success")
     return redirect('/admin/dashboard')
 
 @app.route('/waiting')
