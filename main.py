@@ -144,7 +144,7 @@ def ensure_single_admin():
         existing_admin = Admin_accounts.query.first()
         if not existing_admin:
             print("No admin account found. Please create one manually.")
-
+            
 
 ensure_single_admin()
    
@@ -158,7 +158,8 @@ def admin_login():
 
         if admin_account and bcrypt.checkpw(password.encode('utf-8'), admin_account.password.encode('utf-8')):
             session['username'] = username
-            session['account_type'] = 'admin'  
+            session['account_type'] = 'admin' 
+            session['password'] = password
             return redirect('/admin/dashboard')
 
         error = "Invalid username or password"
