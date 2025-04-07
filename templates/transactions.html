@@ -93,6 +93,7 @@
             <li><a href="{{ url_for('login') }}">Login</a></li>
             <li><a href="{{ url_for('signup') }}">Sign Up</a></li>
             <li><a href="{{ url_for('transactions') }}">Transactions</a></li>
+            <li><a href="{{ url_for('bank_statement') }}">Bank Statement</a></li>
             <li><a href="{{ url_for('admin_login') }}">Admin Login</a></li>
         </ul>
     </nav>
@@ -102,7 +103,7 @@
     <div class="body-container">
         <div class="body-content">
             <input type="text" name="card_number" id="card_number_input" placeholder="Card Number">
-            <input type="text" name="expiry_date" id="expiry_date_input" placeholder="Expiry Date">
+            <input type="text" name="expiry_date" id="expiry_date_input" placeholder="MM/YYYY (For example: 12/2025)">
             <input type="text" name="CCV" id="ccv_input" placeholder="CCV">
             <input type="text" name="amount_for_transaction" id="transaction_amount_input" placeholder="Transaction Amount">
             <div class="buttons-container">
@@ -230,7 +231,7 @@
 
         send_btn.addEventListener("click", async function() {
             const senders_account_num = senders_account_num_input.value
-            const senders_card_num = senders_account_num_input.value
+            const senders_card_num = senders_card_num_input.value
             const recipients_account_num = recipients_account_num_input.value
             const senders_transaction_amount = senders_transaction_amount_input.value
             const senders_card_ccv = senders_card_ccv_input.value
