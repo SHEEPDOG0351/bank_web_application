@@ -155,15 +155,16 @@ def admin_login():
         password = request.form['password']
 
         admin_account = Admin_accounts.query.filter_by(username=username).first()
+        admin_password = Admin_accounts.query.filter_by(password=password).first()
 
-        if admin_account and bcrypt.checkpw(password.encode('utf-8'), admin_account.password.encode('utf-8')):
+        if admin_account and admin_password:
             session['username'] = username
-            session['account_type'] = 'admin' 
+            session['account_type'] = 'admin'
             session['password'] = password
-            return redirect('/admin/dashboard')
 
-        error = "Invalid username or password"
-        return render_template('admin_login.html', error=error)
+            return jsonify({"success": True})
+        
+        return jsonify({"success": False})
 
     return render_template('admin_login.html')
 
