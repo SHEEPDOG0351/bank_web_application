@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Statements</title>
+</head>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background-color: rgb(47, 47, 47);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        color: white;
+    }
+
+    button {
+        font-size: 20px;
+        text-align: center;
+        background-color: red;
+        color: white;
+        border: 1px transparent solid;
+        border-radius: 5px;
+        padding: 15px;
+        margin-top: 10px;
+        margin-bottom: 15px;
+    }
+
+    nav {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: black;
+        margin-bottom: 20px;
+    }
+
+    nav ul {
+        list-style-type: none;
+        display: flex;
+        gap: 10px;
+        text-decoration: none;
+        padding: 20px;
+    }
+
+    nav ul li {
+        display: flex;
+        flex-direction: column;
+        font-size: 20px;
+    }
+
+    nav ul li a {
+        text-decoration: none;
+        color: white;
+    }
+
+    h1 {
+        text-align: center;
+        padding: 20px;
+    }
+
+    .body-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .body-content input {
+        font-size: 20px;
+        padding: 15px 10px;
+    }
+
+</style>
+
+<body>
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('index') }}">Home</a></li>
+            <li><a href="{{ url_for('accounts') }}">Accounts</a></li>
+            <li><a href="{{ url_for('login') }}">Login</a></li>
+            <li><a href="{{ url_for('signup') }}">Sign Up</a></li>
+            <li><a href="{{ url_for('transactions') }}">Transactions</a></li>
+            <li><a href="{{ url_for('bank_statement') }}">Bank Statement</a></li>
+            <li><a href="{{ url_for('admin_login') }}"></a></li>
+        </ul>
+    </nav>
+
+    <div class="body-container">
+        <div class="body-content">
+            <input type="text" name="account_number" id="account_number_input" placeholder="Account Number">
+            <button id="view-transactions-btn">View Transactions</button>
+        </div>
+    </div>
+
+<script>
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const view_transactions_btn = document.getElementById("view-transactions-btn")
+        const account_number_input = document.getElementById("account_number_input")
+        const body_content_container = document.querySelector(".body-content")
+
+        view_transactions_btn.addEventListener("click", async function() {
+            const account_number = account_number_input.value
+
+            if (!account_number) {
+                alert("Please enter a valid account number");
+                return;
+            } else {
+                try {
+                    const response = await fetch(`/api/statement/${account_number}`);
+                    const transactions = await response.json();
+
+                    if (transactions.error) {
+                        console.error("Error:", transactions.error);
+                        return;
+                    }
+
+                    console.log("Transaction history:", transactions);
+
+                    // Display transactions to the page here...
+                    transactions.forEach(tx => {
+                        const row = document.createElement("div");
+                        row.innerHTML = `
+                            <p><strong>Type:</strong> ${tx.type}</p>
+                            <p><strong>Amount:</strong> $${tx.amount}</p>
+                            <p><strong>Sender:</strong> ${tx.sender || "N/A"}</p>
+                            <p><strong>Recipient:</strong> ${tx.recipient || "N/A"}</p>
+                            <p><strong>Timestamp:</strong> ${tx.timestamp}</p>
+                            <hr>
+                        `;
+                        body_content_container.appendChild(row);
+                    });
+
+                } catch (error) {
+                    console.error("Failed to fetch transaction history:", error);
+                }
+            }
+        })
+    })
+
+</script>
+
+</body>
+</html>

@@ -4,7 +4,7 @@ from sqlalchemy import text, create_engine, text
 import random
 import bcrypt
 import mysql.connector
-conn_str = "mysql://root:cset155@localhost/exam_management_2"
+conn_str = "mysql://root:cset155@localhost/banking_app"
 engine = create_engine(conn_str, echo = True)
 conn = engine.connect()
 
@@ -43,14 +43,19 @@ class Users_cards(db.Model):
     card_number = db.Column(db.String(20), primary_key=True)
     expiry_date = db.Column(db.String(7), nullable=False)
     ccv = db.Column(db.Integer, nullable=False)
-    balance = db.Column(db.Integer, nullable=False)
 
+class Transaction(db.Model):
+    __tablename__ = 'transactions'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    sender_account = db.Column(db.String(20), nullable=True)
+    recipient_account = db.Column(db.String(20), nullable=True)
+    transaction_type = db.Column(db.String(20), nullable=False)
+    amount = db.Column(db.Integer, nullable=False)
+    timestamp = db.Column(db.DateTime, server_default=db.func.now())
 
 @app.route('/')
 def index():
     return render_template('accounts.html')
-
-
 
 @app.route('/signup', methods = ['GET', 'POST'])
 def signup():
@@ -203,9 +208,6 @@ def approve_user(social_security):
     flash("User approved successfully!", "success")
     return redirect('/admin/dashboard')
 
-
-
-
 @app.route('/waiting')
 def waiting():
     return render_template('waiting.html')
@@ -217,6 +219,10 @@ def accounts():
 @app.route('/transactions')
 def transactions():
     return render_template('transactions.html')
+
+@app.route('/bank_statement')
+def bank_statement():
+    return render_template("bank_statement.html")
 
 @app.route("/api/account/<bank_account_number>", methods=["GET"]) # This route is used to pull the data needed for displaying user information from the SQL database and preparing it for JS
 def get_account_info(bank_account_number): # using the bank account num given in the request:
@@ -259,6 +265,16 @@ def process_transaction():
     bank_account = Bank_accounts.query.filter_by(bank_account_number=card.bank_account_number).first()
     if not bank_account:
         return jsonify({"error": "Associated bank account not found"}), 404
+    
+    transaction_type = "deposit" if amount > 0 else "withdrawal"
+    new_transaction = Transaction(
+        sender_account=None if amount > 0 else bank_account.bank_account_number,
+        recipient_account=bank_account.bank_account_number if amount > 0 else None,
+        transaction_type=transaction_type,
+        amount=abs(amount)
+    )
+    db.session.add(new_transaction)
+
 
     # Credit the amount
     bank_account.balance += amount
@@ -304,6 +320,14 @@ def transfer():
     # Performs the transaction
     sender.balance -= senders_transaction_amount
     recipient.balance += senders_transaction_amount
+
+    new_transaction = Transaction(
+        sender_account=sender.bank_account_number,
+        recipient_account=recipient.bank_account_number,
+        transaction_type="transfer",
+        amount=senders_transaction_amount
+    )
+    db.session.add(new_transaction)
     db.session.commit()
 
     return jsonify({
@@ -312,6 +336,24 @@ def transfer():
     })
 
 
+@app.route("/api/statement/<bank_account_number>", methods=["GET"])
+def get_bank_statement(bank_account_number):
+    transactions = Transaction.query.filter(
+        (Transaction.sender_account == bank_account_number) | 
+        (Transaction.recipient_account == bank_account_number)
+    ).order_by(Transaction.timestamp.desc()).all()
+
+    return jsonify([
+        {
+            "id": t.id,
+            "type": t.transaction_type,
+            "amount": t.amount,
+            "timestamp": t.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+            "sender": t.sender_account,
+            "recipient": t.recipient_account
+        }
+        for t in transactions
+    ])
 
 if __name__ == '__main__':
         app.run(debug=True)
