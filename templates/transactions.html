@@ -102,6 +102,7 @@
 
     <div class="body-container">
         <div class="body-content">
+            <input type="text" placeholder="Bank Account Number" id="card-bank-account-num">
             <input type="text" name="card_number" id="card_number_input" placeholder="Card Number">
             <input type="text" name="expiry_date" id="expiry_date_input" placeholder="MM/YYYY (For example: 12/2025)">
             <input type="text" name="CCV" id="ccv_input" placeholder="CCV">
@@ -125,7 +126,7 @@
         <div class="body-content" id="second-body-content">
             <input type="text" name="senders-account-num" id="senders-account-num-input" placeholder="Your Account Number">
             <input type="text" name="senders-card-num" id="senders-card-num-input" placeholder="Your Card Num">
-            <input type="text" name="senders--card-ccv" id="senders-card-ccv-input" placeholder="Your Card's CCV">
+            <input type="text" name="senders-card-ccv" id="senders-card-ccv-input" placeholder="Your Card's CCV">
             <input type="text" name="recipients-account-num" id="recipients-account-num-input" placeholder="Recipient's Account Number">
             <input type="text" name="Transaction Amount" id="transaction-amount-input" placeholder="Amount To Send">
             <button id="send-btn">Send</button>
@@ -149,6 +150,7 @@
         const senders_card_ccv_input = document.getElementById("senders-card-ccv-input")
         const use_bank_account_btn = document.getElementById("use-bank-account-btn")
         const use_card_btn = document.getElementById("use-card-btn")
+        const account_num_first_input = document.getElementById("card-bank-account-num")
 
         transaction_amount_input.addEventListener("keydown", function(event) {
             if (event.key == "Enter") {
@@ -161,12 +163,14 @@
             const expiry_date = expiry_date_input.value.trim();
             const ccv = ccv_input.value.trim();
             const transaction_amount = transaction_amount_input.value.trim();
+            const bank_account_number = account_num_first_input.value.trim();
 
             try {
                 const response = await fetch("/api/transaction", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
+                        bank_account_number: bank_account_number,
                         card_number: card_num,
                         expiry_date: expiry_date,
                         ccv: ccv,
@@ -191,12 +195,14 @@
             const expiry_date = expiry_date_input.value.trim();
             const ccv = ccv_input.value.trim();
             const transaction_amount = transaction_amount_input.value.trim();
+            const bank_account_number = account_num_first_input.value.trim();
 
             try {
                 const response = await fetch("/api/transaction", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
+                        bank_account_number: bank_account_number,
                         card_number: card_num,
                         expiry_date: expiry_date,
                         ccv: ccv,
@@ -265,8 +271,6 @@
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                             recipients_account_num: recipients_account_num,
-                            senders_card_num: senders_card_num,
-                            senders_card_ccv: senders_card_ccv,
                             senders_transaction_amount: senders_transaction_amount
                         })
                     });

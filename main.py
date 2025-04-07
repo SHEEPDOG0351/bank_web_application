@@ -37,13 +37,6 @@ class Bank_accounts(db.Model):
     social_security = db.Column(db.String(11), db.ForeignKey('users.social_security'), nullable=False)
     balance = db.Column(db.Integer, default=0, nullable=False)
 
-class Users_cards(db.Model):
-    __tablename__ = 'users_cards'
-    bank_account_number = db.Column(db.String(20), db.ForeignKey('bank_accounts.bank_account_number'), nullable=False)
-    card_number = db.Column(db.String(20), primary_key=True)
-    expiry_date = db.Column(db.String(7), nullable=False)
-    ccv = db.Column(db.Integer, nullable=False)
-
 class Transaction(db.Model):
     __tablename__ = 'transactions'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -244,42 +237,32 @@ def get_account_info(bank_account_number): # using the bank account num given in
         return jsonify({"error": "Account not found"}), 404
     
 @app.route("/api/transaction", methods=["POST"])
-def process_transaction():
+def handle_transaction():
     data = request.get_json()
+    
     card_number = data.get("card_number")
     expiry_date = data.get("expiry_date")
     ccv = data.get("ccv")
     amount = int(data.get("amount"))
+    bank_account_number = data.get("bank_account_number")
 
-    card = Users_cards.query.filter_by(
-        card_number=card_number,
-        expiry_date=expiry_date,
-        ccv=ccv
-    ).first()
+    account = Bank_accounts.query.filter_by(bank_account_number=bank_account_number).first()
+    if not account:
+        return jsonify({"error": "Bank account not found"}), 404
 
-    if not card:
-        return jsonify({"error": "Card not found or invalid info"}), 404
+    account.balance += amount
 
-    # Get bank account and add amount
-    bank_account = Bank_accounts.query.filter_by(bank_account_number=card.bank_account_number).first()
-    if not bank_account:
-        return jsonify({"error": "Associated bank account not found"}), 404
-    
-    transaction_type = "deposit" if amount > 0 else "withdrawal"
     new_transaction = Transaction(
-        sender_account=None if amount > 0 else bank_account.bank_account_number,
-        recipient_account=bank_account.bank_account_number if amount > 0 else None,
-        transaction_type=transaction_type,
-        amount=abs(amount)
+        sender_account=None,
+        recipient_account=bank_account_number,
+        transaction_type="deposit",
+        amount=amount
     )
     db.session.add(new_transaction)
-
-
-    # Credit the amount
-    bank_account.balance += amount
     db.session.commit()
 
-    return jsonify({"message": "Transaction successful", "new_balance": bank_account.balance})
+    return jsonify({"message": "Deposit successful", "new_balance": account.balance})
+
 
 
 @app.route("/api/transfer", methods=["POST"])
@@ -290,38 +273,34 @@ def transfer():
     senders_transaction_amount = int(data.get("senders_transaction_amount"))
 
     senders_account_num = data.get("senders_account_num")
-
-    senders_card_num = data.get("senders_card_num")
+    senders_card_num = data.get("senders_card_num")  # still unused, but we get it
     senders_card_ccv = data.get("senders_card_ccv")
 
+    # Try to pull sender account info if provided
+    sender = None
     if senders_account_num:
-        sender = Bank_accounts.query.filter_by(bank_account_number = senders_account_num).first()
+        sender = Bank_accounts.query.filter_by(bank_account_number=senders_account_num).first()
+        if not sender:
+            return jsonify({"error": "Sender account not found"}), 404
 
-    elif senders_card_num:
-        senders_card = Users_cards.query.filter_by(card_number = senders_card_num).first()
-        if not senders_card:
-            return jsonify({"error": "Invalid card number"}), 404
-        sender = Bank_accounts.query.filter_by(bank_account_number=senders_card.bank_account_number).first()
-    else:
-        return jsonify({"error": "No valid sender provided"}), 400
-    
-    if not sender:
-        return jsonify({"error": "Sender account not found"}), 404
-    
     recipient = Bank_accounts.query.filter_by(bank_account_number=recipients_account_num).first()
     if not recipient:
         return jsonify({"error": "Recipient's account num wasn't found"}), 404
-    
-    print(f"Sender.balance type: {type(sender.balance)}\nsenders transaction amount type: {type(senders_transaction_amount)}")
-    if sender.balance < senders_transaction_amount:
-        return jsonify({"error": "Insufficient funds"}), 400
-    
-    # Performs the transaction
-    sender.balance -= senders_transaction_amount
+
+    if sender:
+        # Verify sender has enough money
+        if sender.balance < senders_transaction_amount:
+            return jsonify({"error": "Insufficient funds"}), 400
+
+        # Deduct from real sender's balance
+        sender.balance -= senders_transaction_amount
+
+    # Always add to recipient
     recipient.balance += senders_transaction_amount
 
+    # Log the transaction (show sender if real, else simulate)
     new_transaction = Transaction(
-        sender_account=sender.bank_account_number,
+        sender_account=sender.bank_account_number if sender else "CARD",
         recipient_account=recipient.bank_account_number,
         transaction_type="transfer",
         amount=senders_transaction_amount
@@ -331,8 +310,9 @@ def transfer():
 
     return jsonify({
         "message": "Transfer successful",
-        "sender_new_balance": sender.balance
+        "sender_new_balance": sender.balance if sender else "N/A"
     })
+
 
 
 @app.route("/api/statement/<bank_account_number>", methods=["GET"])
