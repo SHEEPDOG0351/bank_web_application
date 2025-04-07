@@ -55,7 +55,7 @@ class Transaction(db.Model):
 
 @app.route('/')
 def index():
-    return render_template('accounts.html')
+    return render_template('signup.html')
 
 @app.route('/signup', methods = ['GET', 'POST'])
 def signup():
@@ -104,7 +104,7 @@ def get_db_connection():
     connection = mysql.connector.connect(
         host='localhost',
         user='root', 
-        password='password', 
+        password='your_password',
         database='banking_app'  
     )
     return connection
@@ -140,13 +140,10 @@ def login():
         return render_template('login.html')
    
 def ensure_single_admin():
-  with app.app_context():  
+    with app.app_context():  
         existing_admin = Admin_accounts.query.first()
         if not existing_admin:
-            hashed_password = bcrypt.hashpw('admin_password'.encode('utf-8'), bcrypt.gensalt())
-            new_admin = Admin_accounts(username='admin', password=hashed_password)
-            db.session.add(new_admin)
-            db.session.commit()
+            print("No admin account found. Please create one manually.")
 
 
 ensure_single_admin()
