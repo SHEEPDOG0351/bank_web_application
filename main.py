@@ -111,13 +111,15 @@ def get_db_connection():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-   if request.method == 'POST':
+    if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+
 
         if not username or not password:
             error = "Both fields (Username and Password) are required"
             return render_template('login.html', error=error)
+
 
         connection = mysql.connector.connect(
             host='localhost',
@@ -126,18 +128,23 @@ def login():
             database='banking_app'
         )
         cursor = connection.cursor(dictionary=True)
+
+
         cursor.execute("SELECT * FROM Users WHERE username = %s", (username,))
         user = cursor.fetchone()
 
+
         if user and bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
             session['username'] = username
-            session['account_type'] = 'user'  
-            return redirect('/dashboard')
+            session['account_type'] = 'user'
+            return redirect('/accounts')  
         else:
             error = "Invalid username or password"
-            return render_template('login.html', error=error)
+            return render_template('login.html', error=error)  
 
-        return render_template('login.html')
+    return render_template('login.html') 
+
+
    
 def ensure_single_admin():
     with app.app_context():  
